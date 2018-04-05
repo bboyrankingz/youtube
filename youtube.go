@@ -25,14 +25,11 @@ type video struct {
 	description string
 }
 
-func main() {
-	videos := VideoList(*channelId)
-	printIDs("Videos", videos)
+type MyService struct {
+	*youtube.Service
 }
 
-func VideoList(channelId string) map[string]video {
-	flag.Parse()
-
+func main() {
 	client := &http.Client{
 		Transport: &transport.APIKey{Key: os.Getenv("key")},
 	}
@@ -41,6 +38,15 @@ func VideoList(channelId string) map[string]video {
 	if err != nil {
 		log.Fatalf("Error creating new YouTube client: %v", err)
 	}
+
+	s := &MyService{service}
+
+	videos := s.VideoList(*channelId)
+	printIDs("Videos", videos)
+}
+
+func (service MyService) VideoList(channelId string) map[string]video {
+	flag.Parse()
 
 	call := service.Activities.List("id,snippet").
 		ChannelId(channelId).
