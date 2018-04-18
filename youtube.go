@@ -1,7 +1,9 @@
 package main
 
 import (
-	"flag"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -12,10 +14,13 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
-var channelID = flag.String("channel-id", "UCLRCoLpDImkbFw8D3qXFpUQ", "Channel Id exemple")
-
 type Configuration struct {
 	developerKey string
+}
+
+type Channel struct {
+	Title string `json:"title"`
+	ID    string `json:"id"`
 }
 
 func main() {
@@ -28,8 +33,22 @@ func main() {
 		log.Fatalf("Error creating new YouTube client: %v", err)
 	}
 
-	s := &activities.MyService{service}
+	s := &activities.YoutubeWrapper{service}
+	ch := channels()
+	for _, p := range ch {
+		videos := s.VideoList(p.ID)
+		activities.PrintIDs("Videos", videos)
+	}
+}
 
-	videos := s.VideoList(*channelID)
-	activities.PrintIDs("Videos", videos)
+func channels() []Channel {
+	raw, err := ioutil.ReadFile("./channels.json")
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	var c []Channel
+	json.Unmarshal(raw, &c)
+	return c
 }
