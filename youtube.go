@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/youtube/activities"
 
@@ -35,10 +36,20 @@ func main() {
 
 	s := &activities.YoutubeWrapper{service}
 	ch := channels()
+	channelLength := len(ch)
+
+	var wg sync.WaitGroup
+	wg.Add(channelLength)
+
 	for _, p := range ch {
-		videos := s.VideoList(p.ID)
-		activities.PrintIDs("Videos", videos)
+		go func(p Channel) {
+			defer wg.Done()
+			videos := s.VideoList(p.ID)
+			activities.PrintIDs("Videos", videos)
+		}(p)
 	}
+
+	wg.Wait()
 }
 
 func channels() []Channel {
