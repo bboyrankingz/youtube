@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	youtube "google.golang.org/api/youtube/v3"
+	"google.golang.org/api/youtube/v3"
 )
 
 var maxResults = flag.Int64("max-results", 25, "Max YouTube results")
@@ -18,8 +18,12 @@ type video struct {
 	channelID    string
 }
 
+type Service interface {
+	List(string) *youtube.ActivitiesListCall
+}
+
 type YoutubeWrapper struct {
-	*youtube.Service
+	Activities Service
 }
 
 func (service YoutubeWrapper) VideoList(channelId string) map[string]video {
@@ -28,6 +32,7 @@ func (service YoutubeWrapper) VideoList(channelId string) map[string]video {
 	call := service.Activities.List("id,snippet").
 		ChannelId(channelId).
 		MaxResults(*maxResults)
+
 	response, err := call.Do()
 	if err != nil {
 		log.Fatalf("Error making search API call with id %v stack: %v", channelId, err)

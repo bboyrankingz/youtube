@@ -33,8 +33,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating new YouTube client: %v", err)
 	}
-
-	s := &activities.YoutubeWrapper{service}
+	s := &activities.YoutubeWrapper{Activities: service.Activities}
 	ch := channels()
 	channelLength := len(ch)
 
